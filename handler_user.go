@@ -55,3 +55,17 @@ func handlerRegister(s *state, cmd command) error {
 	fmt.Printf("ID: %v\nCreatedAt: %v\nUpdatedAt: %v\nName: %v\n", user.ID, user.CreatedAt, user.UpdatedAt, user.Name)
 	return nil
 }
+
+func handlerReset(s *state, cmd command) error {
+	if len(cmd.Args) > 0 {
+		return fmt.Errorf("usage: %s <name>", cmd.Name)
+	}
+
+	err := s.db.DeleteUsers(context.Background())
+	if err != nil {
+		return fmt.Errorf("Reset unsuccessful: %w\n", err)
+	}
+
+	fmt.Print("Reset successful!\n")
+	return nil
+}
