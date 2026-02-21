@@ -69,3 +69,22 @@ func handlerReset(s *state, cmd command) error {
 	fmt.Print("Reset successful!\n")
 	return nil
 }
+
+func handlerUsers(s *state, cmd command) error {
+	if len(cmd.Args) > 0 {
+		return fmt.Errorf("usage: %s <name>", cmd.Name)
+	}
+
+	users, err := s.db.GetUsers(context.Background())
+	if err != nil {
+		return fmt.Errorf("Couldn't retrieve users %w", err)
+	}
+	for _, user := range users {
+		if user == s.cfg.CurrentUserName {
+			fmt.Printf("* %s (current)\n", user)	
+		} else {
+			fmt.Printf("* %s\n", user)
+		}
+	}
+	return nil
+}
