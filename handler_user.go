@@ -58,7 +58,7 @@ func handlerRegister(s *state, cmd command) error {
 
 func handlerReset(s *state, cmd command) error {
 	if len(cmd.Args) > 0 {
-		return fmt.Errorf("usage: %s <name>", cmd.Name)
+		return fmt.Errorf("usage: %s", cmd.Name)
 	}
 
 	err := s.db.DeleteUsers(context.Background())
