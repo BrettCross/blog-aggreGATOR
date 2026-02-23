@@ -40,6 +40,8 @@ func main() {
 	cmds.register("agg", handlerAgg)
 	cmds.register("addfeed", handlerAddFeed)
 	cmds.register("feeds", handlerFeeds)
+	cmds.register("follow", handlerFollow)
+	cmds.register("following", handlerFollowing)
 
 	if len(os.Args) < 2 {
 		log.Fatal("Usage: cli <command> [args...]")
@@ -52,17 +54,4 @@ func main() {
 	if err != nil {
 		log.Fatal(err)
 	}
-	// fmt.Printf("Read config: %+v\n", cfg)
-
-	// err = cfg.SetUser("Brett")
-	// if err != nil {
-	// 	log.Fatalf("couldn't set current user :%v", err)
-	// }
-
-	// cfg, err = config.Read()
-	// if err != nil {
-	// 	log.Fatalf("error reading config: %v", err)
-	// }
-	// fmt.Printf("Read config again: %+v\n", cfg)
-
 }
