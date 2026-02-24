@@ -34,14 +34,9 @@ func handlerAgg(s *state, cmd command) error {
 	return nil
 }
 
-func handlerAddFeed(s *state, cmd command) error {
+func handlerAddFeed(s *state, cmd command, user database.User) error {
 	if len(cmd.Args) != 2 {
 		return fmt.Errorf("usage: %s <name>", cmd.Name)
-	}
-
-	curUser, err := s.db.GetUser(context.Background(), s.cfg.CurrentUserName)
-	if err != nil {
-		return fmt.Errorf("Error retrieving user: %w", err)
 	}
 
 	feedName := cmd.Args[0]
@@ -53,7 +48,7 @@ func handlerAddFeed(s *state, cmd command) error {
 		UpdatedAt: time.Now(), 
 		Name: feedName,
 		Url: feedUrl,
-		UserID: curUser.ID,
+		UserID: user.ID,
 	})
 	if err != nil {
 		return fmt.Errorf("Error creating feed: %w", err)
@@ -63,7 +58,7 @@ func handlerAddFeed(s *state, cmd command) error {
 		ID: uuid.New(),
 		CreatedAt: time.Now(),
 		UpdatedAt: time.Now(),
-		UserID: curUser.ID,
+		UserID: user.ID,
 		FeedID: feed.ID,
 	})
 	if err != nil {
@@ -90,17 +85,12 @@ func handlerFeeds(s *state, cmd command) error {
 	return nil 
 }
 
-func handlerFollow(s *state, cmd command) error {
+func handlerFollow(s *state, cmd command, user database.User) error {
 	if len(cmd.Args) != 1 {
 		return fmt.Errorf("usage: %s <url>", cmd.Name)
 	}
 
 	urlArg := cmd.Args[0]
-
-	curUser, err := s.db.GetUser(context.Background(), s.cfg.CurrentUserName)
-	if err != nil {
-		return fmt.Errorf("Error retrieving user: %w", err)
-	}
 
 	feed, err := s.db.GetFeedByURL(context.Background(), urlArg)
 	if err != nil {
@@ -111,7 +101,7 @@ func handlerFollow(s *state, cmd command) error {
 		ID: uuid.New(),
 		CreatedAt: time.Now(),
 		UpdatedAt: time.Now(),
-		UserID: curUser.ID,
+		UserID: user.ID,
 		FeedID: feed.ID,
 	})
 	if err != nil {
@@ -122,19 +112,14 @@ func handlerFollow(s *state, cmd command) error {
 	return nil
 }
 
-func handlerFollowing(s *state, cmd command) error {
+func handlerFollowing(s *state, cmd command, user database.User) error {
 	if len(cmd.Args) > 0 {
 		return fmt.Errorf("usage: %s", cmd.Name)
 	}
 
-	curUser, err := s.db.GetUser(context.Background(), s.cfg.CurrentUserName)
+	feeds, err := s.db.GetFeedFollowsForUser(context.Background(), user.ID)
 	if err != nil {
-		return fmt.Errorf("Error retrieving user: %w", err)
-	}
-
-	feeds, err := s.db.GetFeedFollowsForUser(context.Background(), curUser.ID)
-	if err != nil {
-		return fmt.Errorf("Error retrieving followed feeds for %s: %w", curUser.Name, err)
+		return fmt.Errorf("Error retrieving followed feeds for %s: %w", user.Name, err)
 	}
 
 	for _, feed := range feeds {
