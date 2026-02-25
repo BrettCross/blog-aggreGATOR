@@ -7,8 +7,8 @@ import (
 	"log"
 	"os"
 
-	"github.com/brettcross/blog-aggreGATOR/internal/config"
-	"github.com/brettcross/blog-aggreGATOR/internal/database"
+	"github.com/brettcross/gator/internal/config"
+	"github.com/brettcross/gator/internal/database"
 	_ "github.com/lib/pq"
 )
 

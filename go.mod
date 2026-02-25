@@ -1,4 +1,4 @@
-module github.com/brettcross/blog-aggreGATOR
+module github.com/brettcross/gator
 
 go 1.24.2
 

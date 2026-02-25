@@ -2,12 +2,12 @@ package main
 
 import (
 	"context"
-	"strconv"
 	"database/sql"
 	"fmt"
+	"strconv"
 	"time"
 
-	"github.com/brettcross/blog-aggreGATOR/internal/database"
+	"github.com/brettcross/gator/internal/database"
 	"github.com/google/uuid"
 )
 
