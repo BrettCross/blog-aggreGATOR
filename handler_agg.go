@@ -2,9 +2,11 @@ package main
 
 import (
 	"context"
+	"strconv"
+	"database/sql"
 	"fmt"
 	"time"
-	
+
 	"github.com/brettcross/blog-aggreGATOR/internal/database"
 	"github.com/google/uuid"
 )
@@ -178,8 +180,81 @@ func scrapeFeeds(s *state) error {
 		return fmt.Errorf("Error fetching feed: %w", err)
 	}
 
+	// save the items to the posts database
 	for _, item := range rssFeed.Channel.Item {
-		fmt.Println(item.Title)
+		pubDate, err := time.Parse(time.RFC1123Z, item.PubDate)
+		if err != nil {
+			fmt.Printf("Couldn't parse date %s: %v", item.PubDate, err)
+		}
+		_, err = s.db.CreatePost(context.Background(), database.CreatePostParams{
+			ID: uuid.New(),
+			CreatedAt: time.Now(),
+			UpdatedAt: time.Now(),
+			Title: item.Title,
+			Url: item.Link,
+			Description: sql.NullString{
+				String: item.Description,
+				Valid:  item.Description != "",
+			},
+			PublishedAt: sql.NullTime{
+				Time:  pubDate,
+				Valid: !pubDate.IsZero(),
+			},
+			FeedID: feedToFetch.ID,	
+		})
+		if err != nil {
+			fmt.Printf("failed to create post: %v", err)
+		}
+	}
+
+	return nil
+}
+
+func handlerBrowse(s *state, cmd command, user database.User) error {
+	limit := 2
+	if len(cmd.Args) == 1 {
+		n, err := strconv.Atoi(cmd.Args[0])
+		if err != nil {
+			return fmt.Errorf("limit must be a number: %w", err)
+		}
+		if n <= 0 {
+			return fmt.Errorf("limmi must be greater than 0")
+		}
+		limit = n
+	}
+	if len(cmd.Args) > 1 {
+		return fmt.Errorf("usage: %s [limit]", cmd.Name)
+	}
+
+	posts, err := s.db.GetPostsForUser(context.Background(), database.GetPostsForUserParams{
+		UserID: user.ID,
+		Limit: int32(limit),
+	})
+	if err != nil {
+		return fmt.Errorf("Error retrieving posts for current user %s: %w", user.Name, err)
+	}
+
+	const (
+		reset  = "\033[0m"
+		bold   = "\033[1m"
+		blue   = "\033[34m"
+		gray   = "\033[90m"
+	)
+
+	for _, post := range posts {
+		fmt.Printf("%s%s%s\n", bold, blue, post.Title)
+		
+		if post.PublishedAt.Valid {
+			fmt.Printf("%sFrom: %s | %v%s\n", gray, post.Name, post.PublishedAt.Time.Format("2006-01-02"), reset)
+		} else {
+			fmt.Printf("%sFrom: %s%s\n", gray, post.Name, reset)
+		}
+
+		if post.Description.Valid {
+			fmt.Printf("%s\n", post.Description.String)
+		}
+
+		fmt.Printf("%s-------------------------------------------%s\n\n", gray, reset)
 	}
 
 	return nil
